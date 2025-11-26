@@ -34,7 +34,7 @@ public class SqlGatewayServlet extends HttpServlet {
 
             // 2. Nếu không tìm thấy (tức là đang chạy Local), thì dùng giá trị mặc định
             if (dbURL == null) {
-                dbURL = "jdbc:postgresql://localhost:5433/murach";
+                dbURL = "jdbc:postgresql://localhost:5432/murach";
                 username = "murach"; 
                 password = "123";
             }

@@ -1,0 +1,55 @@
+body {
+    width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11pt;
+    margin-left: 2em;
+    margin-right: 2em;
+}
+h1 {
+    color: teal;
+}
+label {
+    float: left;
+    width: 15em;
+    margin-bottom: 1em;
+    margin-right: 0.5em;
+}
+label.inline-label {
+    float: left;      /* Bỏ float */
+    width: 15em;      /* Chiều rộng tự động theo nội dung */
+    margin-bottom: 1em;
+    margin-right: 0.5em; /* Thêm chút khoảng cách với select box */
+}
+
+input[type="text"], input[type="email"] , input[type="date"]{
+    width: 15em;
+    margin-left: 0.5em;
+    margin-bottom: 1em;
+}
+br {
+    clear: both;
+}
+p{
+    font-size: 1rem;
+}
+select, option{
+    width: 15em;
+    margin-left: 0.5em;
+    margin-bottom: 1em;
+}
+#submit {
+    margin-top: 2em;
+}
+.errormess{
+    text-align: center;
+    color: red;
+    font-size: 2rem;
+    font-weight: 700;
+    padding: 1rem 1rem;
+    width: fit-content;
+}
+.container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

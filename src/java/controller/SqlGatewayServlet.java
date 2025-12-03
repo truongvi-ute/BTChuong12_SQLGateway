@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import sql.SQLUtil;
+import dao.DBConnection;
 
 @WebServlet(urlPatterns = {"/sqlGateway"})
 public class SqlGatewayServlet extends HttpServlet {
@@ -20,53 +21,43 @@ public class SqlGatewayServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        
         String sqlStatement = request.getParameter("sqlStatement");
         String sqlResult = "";
 
-        try {
-            Class.forName("org.postgresql.Driver");
-            
-            // 1. Lấy URL từ Biến môi trường (Environment Variable)
-            String dbURL = System.getenv("DB_URL");
-            String username = System.getenv("DB_USER");
-            String password = System.getenv("DB_PASS");
+        // Gọi hàm lấy kết nối từ class riêng biệt
+        Connection connection = DBConnection.getConnection();
 
-            // 2. Nếu không tìm thấy (tức là đang chạy Local), thì dùng giá trị mặc định
-            if (dbURL == null) {
-                dbURL = "jdbc:postgresql://localhost:5432/murach";
-                username = "murach"; 
-                password = "123";
-            }
-            
-            Connection connection = DriverManager.getConnection(dbURL, username, password);
+        if (connection == null) {
+            // Xử lý trường hợp không kết nối được
+            sqlResult = "<p>Error: Unable to establish database connection.</p>";
+        } else {
+            try {
+                Statement statement = connection.createStatement();
+                sqlStatement = sqlStatement.trim();
+                String sqlType = sqlStatement.length() >= 6 ? sqlStatement.substring(0, 6) : "";
 
-            Statement statement = connection.createStatement();
-            sqlStatement = sqlStatement.trim();
-            String sqlType = sqlStatement.substring(0, 6);
-
-            if (sqlType.equalsIgnoreCase("select")) {
-                ResultSet resultSet = statement.executeQuery(sqlStatement);
-                // Class SQLUtil vẫn dùng bình thường vì nó xử lý ResultSet chuẩn
-                sqlResult = SQLUtil.getHtmlTable(resultSet);
-                resultSet.close();
-            } else {
-                int i = statement.executeUpdate(sqlStatement);
-                if (i == 0) {
-                    sqlResult = "<p>The statement executed successfully.</p>";
+                if (sqlType.equalsIgnoreCase("select")) {
+                    ResultSet resultSet = statement.executeQuery(sqlStatement);
+                    sqlResult = SQLUtil.getHtmlTable(resultSet);
+                    resultSet.close();
                 } else {
-                    sqlResult = "<p>The statement executed successfully.<br>" + 
-                                i + " row(s) affected.</p>";
+                    int i = statement.executeUpdate(sqlStatement);
+                    if (i == 0) {
+                        sqlResult = "<p>The statement executed successfully.</p>";
+                    } else {
+                        sqlResult = "<p>The statement executed successfully.<br>" + 
+                                    i + " row(s) affected.</p>";
+                    }
                 }
+                statement.close();
+                connection.close(); // Đóng kết nối sau khi dùng xong
+
+            } catch (SQLException e) {
+                sqlResult = "<p>Error executing the SQL statement: <br>" + e.getMessage() + "</p>";
             }
-
-            statement.close();
-            connection.close();
-
-        } catch (ClassNotFoundException e) {
-            sqlResult = "<p>Error loading the PostgreSQL driver: " + e.getMessage() + "</p>";
-        } catch (SQLException e) {
-            sqlResult = "<p>Error executing the SQL statement: <br>" + e.getMessage() + "</p>";
         }
 
         HttpSession session = request.getSession();
